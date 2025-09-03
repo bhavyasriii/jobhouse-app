@@ -1,50 +1,216 @@
-# Welcome to your Expo app 👋
+# JobHouse – Job Application Tracker (Expo + Web)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple, friendly job-application tracker built with **React Native + Expo Router**, exported to a static **web** site.
 
-## Get started
+**Live:** [https://bhavyasriii.github.io/jobhouse-app/](https://bhavyasriii.github.io/jobhouse-app/)
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## ✨ Features
 
-2. Start the app
+* Add jobs (role, company, link, notes)
+* Status dropdown (Applied / Interviewing / Offer / Rejected …)
+* Dates: **Applied** and **Status Updated**
+* Persistent data with **AsyncStorage**
+* Quick **share/export** (JSON/text)
+* Clean, mobile‑first UI
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🧰 Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+* **Expo 53**, **React Native 0.79**, **React 19**
+* **Expo Router 5** + **React Navigation 7**
+* **AsyncStorage** for persistence
+* **@react-native-community/datetimepicker** for dates
+* (Optional UI) **react-native-paper**
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 📦 Project Structure (important bits)
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+jobhouse-app/
+├─ app/
+│  ├─ _layout.tsx           # Expo Router root (required)
+│  └─ index.tsx             # Home route (re-exports your HomeScreen)
+├─ screens/
+│  ├─ HomeScreen.js         # Home list
+│  ├─ AddJobScreen.js       # Add a job
+│  └─ EditJobScreen.js      # Edit/delete a job
+├─ components/              # Reusable UI (HapticTab, IconSymbol, etc.)
+├─ assets/                  # icons, images
+├─ app.json                 # Expo config  → web.output = "static"
+├─ package.json             # scripts for dev/build/deploy
+└─ vercel.json              # (only for Vercel) SPA rewrites
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+> **Why `app/`?** Expo Router only discovers routes inside an `app/` folder. At minimum you need `app/_layout.tsx` and one route like `app/index.tsx`.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🚀 Quick Start (local dev)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+# install deps
+npm install
 
-## Join the community
+# run in Expo (QR / simulator)
+npm start
 
-Join our community of developers creating universal apps.
+# run on the web\	npm run web
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## 🔧 Scripts
+
+These are the scripts used in this repo:
+
+```json
+{
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "build:web": "expo export --platform web --output-dir=dist",
+    "predeploy": "npm run build:web && powershell -Command \"Copy-Item -Path dist\\index.html -Destination dist\\404.html\"",
+    "deploy": "gh-pages -d dist"
+  }
+}
+```
+
+---
+
+## 🌐 Deploy – GitHub Pages (static)
+
+1. Ensure `app.json` has:
+
+   ```json
+   {
+     "expo": {
+       "web": { "output": "static", "publicPath": "./", "favicon": "./assets/favicon.png" }
+     }
+   }
+   ```
+2. Set the homepage in `package.json` (already set):
+
+   ```json
+   { "homepage": "https://bhavyasriii.github.io/jobhouse-app" }
+   ```
+3. Build & publish:
+
+   ```bash
+   npm run build:web
+   npm run predeploy   # copies index.html → 404.html for SPA refresh
+   npm run deploy      # pushes dist/ to gh-pages branch
+   ```
+4. In GitHub → **Settings → Pages**: Source = **gh-pages** / **/(root)**.
+
+---
+
+## ▲ Deploy – Vercel (optional)
+
+Add a **vercel.json** at the repo root:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "cleanUrls": true
+}
+```
+
+Then set build settings:
+
+* **Framework preset:** Other
+* **Install Command:** `npm install`
+* **Build Command:** `npx expo export --platform web`
+* **Output Directory:** `dist`
+
+> If you deploy via CLI with a prebuilt `dist/`, copy `vercel.json` into `dist/` before `vercel deploy dist`.
+
+---
+
+## 📄 Configuration Notes
+
+* Remove invalid `entryPoint` from `app.json` (Expo 53 validates config strictly).
+* Environment variables for web must start with `EXPO_PUBLIC_` (e.g. `EXPO_PUBLIC_API_BASE`). Add them in Vercel/Pages if needed.
+
+---
+
+## 📚 Troubleshooting
+
+**“No routes found”** during export
+
+* Ensure you have `app/_layout.tsx` and at least one route like `app/index.tsx`.
+* In this project, `app/index.tsx` simply re-exports the existing `screens/HomeScreen.js`:
+
+  ```tsx
+  // app/index.tsx
+  import HomeScreen from "../screens/HomeScreen";
+  export default HomeScreen;
+  ```
+
+**Expo doctor dependency mismatches**
+
+```bash
+npx expo-doctor
+npx expo install <packages it suggests>
+```
+
+**Windows cleanup**
+
+```powershell
+# instead of rm -rf
+foreach ($p in 'node_modules','.expo','.cache','dist') { if (Test-Path $p) { Remove-Item $p -Recurse -Force } }
+```
+
+**Blank screen on web**
+
+* Avoid HTML‑only tags like `<select>` / `<input type="date">` in React Native code. Use RN components (e.g., Picker, community DateTimePicker).
+
+---
+
+## 🛣️ Roadmap
+
+* Search & filters
+* CSV export
+* Cloud backup (Supabase/Firebase)
+* Better empty states and toasts
+* E2E tests (Web + Android)
+
+---
+
+## 📱 Mobile Builds (EAS)
+
+```bash
+npm i -g eas-cli
+eas login && eas init
+# Android internal build
+eas build -p android --profile preview
+# iOS TestFlight (requires Apple Dev account)
+eas build -p ios --profile preview
+```
+
+Add minimal `eas.json`:
+
+```json
+{
+  "cli": { "version": ">= 3.0.0" },
+  "build": {
+    "preview": { "distribution": "internal" },
+    "release": { "distribution": "store" }
+  }
+}
+```
+
+---
+
+## 🤝 Contributing
+
+PRs/issues welcome! Keep components platform‑safe (no web‑only HTML tags) and prefer `expo install` for native deps.
+
+---
+
+## 📝 License
+
+MIT © 2025 Bhavyasri Mudireddy

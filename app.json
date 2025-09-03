@@ -6,7 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/1c95e69f-3ec8-4144-b2ea-c4cdef6e0281"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -19,8 +20,19 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "static",
+      "publicPath": "./"
     },
-    "entryPoint": "./App.js"
+    "plugins": ["expo-router"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1c95e69f-3ec8-4144-b2ea-c4cdef6e0281"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
